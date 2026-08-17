@@ -1,0 +1,17 @@
+# Runs the gateway with the example config, which uses the built-in
+# mock provider. No API keys needed. To use real providers, set the
+# keys below and point GATEWAY_CONFIG at your own config file.
+services:
+  gateway:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      GATEWAY_CONFIG: /app/examples/routes.yaml
+      # OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

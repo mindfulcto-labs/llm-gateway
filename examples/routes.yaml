@@ -1,0 +1,69 @@
+# Example gateway configuration.
+#
+# This file works fully offline: every default target uses the built-in
+# mock provider. Swap targets for openai or anthropic models once you
+# have API keys exported (OPENAI_API_KEY, ANTHROPIC_API_KEY).
+
+routes:
+  # A cheap, quick route. Clients send model: "fast".
+  fast:
+    strategy: priority
+    retry:
+      attempts: 2
+      timeout_seconds: 15
+      backoff_seconds: 0.2
+    targets:
+      - provider: mock
+        model: mock-small
+      # Example real chain, uncomment when keys are set:
+      # - provider: openai
+      #   model: gpt-4o-mini
+      # - provider: anthropic
+      #   model: claude-haiku-4-5
+
+  # A higher quality route with a fallback chain. Clients send model: "quality".
+  quality:
+    strategy: priority
+    retry:
+      attempts: 2
+      timeout_seconds: 60
+    targets:
+      - provider: mock
+        model: mock-large
+      # - provider: anthropic
+      #   model: claude-sonnet-4-5
+      # - provider: openai
+      #   model: gpt-4o
+
+  # Round-robin spreads requests across targets and still falls back on error.
+  balanced:
+    strategy: round_robin
+    retry:
+      attempts: 1
+      timeout_seconds: 30
+    targets:
+      - provider: mock
+        model: mock-small
+      - provider: mock
+        model: mock-large
+
+budgets:
+  # Daily limit in USD for keys without an explicit entry. Omit for no limit.
+  default_daily_usd: 5.0
+  keys:
+    demo-key: 1.0
+
+# Illustrative prices, update for your providers. USD per 1K tokens.
+# Entries here override the built-in defaults in pricing.py.
+pricing:
+  gpt-4o-mini:
+    input_per_1k: 0.00015
+    output_per_1k: 0.0006
+
+evals:
+  enabled: true
+  evaluators:
+    - empty_or_refusal
+
+# SQLite file for usage accounting.
+database_path: usage.db
